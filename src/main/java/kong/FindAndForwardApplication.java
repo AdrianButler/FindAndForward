@@ -54,6 +54,8 @@ public class FindAndForwardApplication
                     System.out.printf("- %s\n", label.getName());
                 }
             }
+
+            getMessages(service, user);
         } catch (GeneralSecurityException e)
         {
             e.printStackTrace();
@@ -62,6 +64,17 @@ public class FindAndForwardApplication
             e.printStackTrace();
         }
 
+    }
+
+    private static void getMessages(Gmail service, String user)
+    {
+        try
+        {
+            System.out.println(service.users().messages().list(user).execute()); //TODO https://developers.google.com/gmail/api/guides/filtering
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException
