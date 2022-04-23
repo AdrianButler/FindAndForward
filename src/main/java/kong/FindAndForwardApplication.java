@@ -22,79 +22,8 @@ import java.util.List;
 
 public class FindAndForwardApplication
 {
-    private static final String APPLICATION_NAME = "Shopper Panel AutoSender";
-    private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private static final String Tokens_Directory_PATH = "tokens";
-    private static final List<String> SCOPES = Collections.singletonList(GmailScopes.GMAIL_MODIFY);
-    private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
-
     public static void main(String[] args)
     {
-        try
-        {
-            final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-            Gmail service = new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                    .setApplicationName(APPLICATION_NAME)
-                    .build();
 
-            String user = "me";
-            ListLabelsResponse listResponse = service.users().labels().list(user).execute();
-            List<Label> labels = listResponse.getLabels();
-
-            if (labels.isEmpty())
-            {
-                System.out.println("No labels found.");
-            }
-
-            else
-            {
-                System.out.println("Labels:");
-                for (Label label : labels)
-                {
-                    System.out.printf("- %s\n", label.getName());
-                }
-            }
-
-            getMessages(service, user);
-        } catch (GeneralSecurityException e)
-        {
-            e.printStackTrace();
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-
-    }
-
-    private static void getMessages(Gmail service, String user)
-    {
-        try
-        {
-            System.out.println(service.users().messages().list(user).execute()); //TODO https://developers.google.com/gmail/api/guides/filtering
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException
-    {
-        InputStream inputStream = FindAndForwardApplication.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
-        if (inputStream == null)
-        {
-            throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
-        }
-
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(inputStream));
-
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES).setDataStoreFactory(new FileDataStoreFactory(new File(Tokens_Directory_PATH)))
-                .setAccessType("offline")
-                .build();
-
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-        Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-
-        return credential;
     }
 }
