@@ -12,9 +12,11 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
-import kong.FindAndForwardApplication;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +32,7 @@ public class APIController
 
     private NetHttpTransport httpTransport;
     private Gmail service;
+    private Credential credentials;
 
 
     public APIController()
@@ -37,25 +40,29 @@ public class APIController
         try
         {
             httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-            Credential credentials = getCredentials(httpTransport);
-
-            service = new Gmail.Builder(httpTransport, JSON_FACTORY, credentials)
-                    .setApplicationName(APPLICATION_NAME)
-                    .build();
-        }
-        catch (GeneralSecurityException | IOException e)
+            credentials = getCredentials();
+            service = getService();
+        } catch (GeneralSecurityException | IOException e)
         {
             e.printStackTrace();
         }
     }
 
-    private Credential getCredentials(NetHttpTransport httpTransport)
+    private Gmail getService()
+    {
+        Gmail service = new Gmail.Builder(httpTransport, JSON_FACTORY, getCredentials())
+                .setApplicationName(APPLICATION_NAME)
+                .build();
+        return service;
+    }
+
+    private Credential getCredentials()
     {
         Credential credential = null;
 
         try
         {
-            InputStream inputStream = new FileInputStream(new File(CREDENTIALS_FILE_PATH));
+            InputStream inputStream = getClass().getResourceAsStream(CREDENTIALS_FILE_PATH);
 
             GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(inputStream));
 
@@ -68,8 +75,7 @@ public class APIController
             LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
             credential =
                     new AuthorizationCodeInstalledApp(googleAuthorizationCodeFlow, receiver).authorize("user");
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
             e.printStackTrace();
         }
